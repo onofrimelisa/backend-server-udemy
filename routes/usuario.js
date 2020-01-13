@@ -1,6 +1,5 @@
 var express = require('express');
 var bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken');
 
 var mdAutenticacion = require('../middlewares/autenticacion');
 
@@ -13,7 +12,12 @@ var Usuario = require('../models/usuario');
 // OBTENER TODOS LOS USUARIOS
 app.get('/', (request, response, next) => {
 
+    var desde = request.query.desde || 0;
+    desde = Number(desde);
+
     Usuario.find({}, 'nombre email img rol')
+        .skip(desde)
+        .limit(5)
         .exec(
 
             (err, usuarios) => {
@@ -26,9 +30,20 @@ app.get('/', (request, response, next) => {
                     });
                 }
 
-                response.status(200).json({
-                    ok: true,
-                    usuarios: usuarios
+                Usuario.count({}, (err, total) => {
+                    if (err) {
+                        return response.status(400).json({
+                            ok: false,
+                            mensaje: 'Error al buscar usuarios.'
+                        });
+                    }
+
+                    response.status(200).json({
+                        ok: true,
+                        total: total,
+                        usuarios: usuarios
+                    });
+
                 });
             }
         );
@@ -78,6 +93,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (request, response) => {
 
             response.status(200).json({
                 ok: true,
+                message: 'Usuario actualizado con éxito',
                 usuario: usuarioGuardado
             });
         });
