@@ -7,6 +7,114 @@ var SEED = require('../config/config').SEED;
 var app = express();
 var Usuario = require('../models/usuario');
 
+// google
+var CLIENT_ID = require('../config/config').CLIENT_ID;
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(CLIENT_ID);
+
+
+
+
+// ###############################################################################
+//										LOGIN CON GOOGLE
+// ###############################################################################
+async function verify(token) {
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+        // Or, if multiple clients access the backend:
+        //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+    });
+    const payload = ticket.getPayload();
+    // const userid = payload['sub'];
+    // If request specified a G Suite domain:
+    //const domain = payload['hd'];
+
+    return {
+        nombre: payload.name,
+        email: payload.email,
+        img: payload.picture,
+        google: true,
+    }
+}
+
+app.post('/google', async(request, response) => {
+
+    var token = request.body.token;
+    var googleUsr = await verify(token)
+        .catch(err => {
+            return response.status(403).json({
+                ok: false,
+                message: 'Token inválido.',
+                errors: err
+            });
+        });
+
+    Usuario.findOne({ email: googleUsr.email }, (err, usuarioBD) => {
+        if (err) {
+            return response.status(500).json({
+                ok: false,
+                message: 'Error al buscar usuario',
+                errors: err
+            });
+        }
+
+        if (usuarioBD) {
+            if (usuarioBD.google === false) {
+                return response.status(400).json({
+                    ok: false,
+                    message: 'Debe aautenticarse de forma normal.'
+                });
+            } else {
+                usuarioBD.password = null;
+                // crear un token
+                var token = jwt.sign({ usuario: usuarioBD }, SEED, { expiresIn: 14400 }); // 4 horas
+
+                return response.status(200).json({
+                    ok: true,
+                    usuario: usuarioBD,
+                    token: token
+                });
+            }
+        } else {
+            // El usuario no existe, hay que crearlo
+
+            var usuario = new Usuario({
+                nombre: googleUsr.nombre,
+                img: googleUsr.img,
+                email: googleUsr.email,
+                google: true,
+                password: '-'
+            });
+
+            usuario.save((err, usuarioNuevo) => {
+
+                if (err) {
+                    return response.status(500).json({
+                        ok: false,
+                        message: 'Error al crear usuario',
+                        errors: err
+                    });
+                }
+
+                // crear un token
+                var token = jwt.sign({ usuario: usuarioBD }, SEED, { expiresIn: 14400 }); // 4 horas
+
+                return response.status(200).json({
+                    ok: true,
+                    usuario: usuarioNuevo,
+                    token: token
+                });
+
+            });
+        }
+    });
+});
+
+
+// ###############################################################################
+//										LOGIN NORMAL
+// ###############################################################################
 app.post('/', (request, response) => {
 
     var body = request.body;
