@@ -45,6 +45,36 @@ app.get('/', (request, response) => {
         });
 });
 
+// Obtener 1 hospital
+app.get('/:id', (request, response) => {
+    var id = request.params.id;
+
+    Hospital.findById(id)
+        .populate('usuario', 'nombre img email')
+        .exec((err, hospital) => {
+
+            if (err) {
+                return response.status(500).json({
+                    ok: false,
+                    error: err,
+                    message: 'Error al buscar hospital'
+                });
+            }
+
+            if (!hospital) {
+                return response.status(400).json({
+                    ok: false,
+                    message: 'No existe un hospital con ese id',
+                });
+            }
+
+            response.status(200).json({
+                ok: true,
+                hospital: hospital
+            });
+        });
+});
+
 // Crear hospital
 
 app.post('/', mdAutenticacion.verificaToken, (request, response) => {

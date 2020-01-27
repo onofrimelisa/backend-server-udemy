@@ -45,6 +45,38 @@ app.get('/', (request, response) => {
         });
 });
 
+// Recuperar un médico
+app.get('/:id', (request, response) => {
+    let id = request.params.id;
+
+    Medico.findById(id)
+        .populate('usuario', 'nombre email img')
+        .populate('hospital')
+        .exec((err, medico) => {
+
+            if (err) {
+                return response.status(500).json({
+                    ok: false,
+                    message: 'Error al buscar médico',
+                    error: err
+                });
+            }
+
+            if (!medico) {
+                return response.status(400).json({
+                    ok: false,
+                    message: 'No existe un medico con ese id'
+                });
+            }
+
+            return response.status(200).json({
+                ok: true,
+                medico: medico
+            });
+
+        });
+})
+
 // Crear medicos
 app.post('/', mdAutenticacion.verificaToken, (request, response) => {
 
@@ -69,6 +101,7 @@ app.post('/', mdAutenticacion.verificaToken, (request, response) => {
 
         response.status(201).json({
             ok: true,
+            message: 'Se creó el médico ' + medico.nombre,
             medico: medicoGuardado,
             usuarioToken: request.usuario
         });
@@ -115,7 +148,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (request, response) => {
 
             return response.status(200).json({
                 ok: true,
-                message: 'Se actualizo con exito.',
+                message: 'Se actualizo la información del médico.',
                 medico: medicoGuardado
             });
         });

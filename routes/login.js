@@ -63,7 +63,7 @@ app.post('/google', async(request, response) => {
             if (usuarioBD.google === false) {
                 return response.status(400).json({
                     ok: false,
-                    message: 'Debe aautenticarse de forma normal.'
+                    message: 'Debe autenticarse de forma normal.'
                 });
             } else {
                 usuarioBD.password = null;
@@ -73,7 +73,8 @@ app.post('/google', async(request, response) => {
                 return response.status(200).json({
                     ok: true,
                     usuario: usuarioBD,
-                    token: token
+                    token: token,
+                    menu: obtenerMenu(usuarioBD.rol)
                 });
             }
         } else {
@@ -103,7 +104,9 @@ app.post('/google', async(request, response) => {
                 return response.status(200).json({
                     ok: true,
                     usuario: usuarioNuevo,
-                    token: token
+                    token: token,
+                    menu: obtenerMenu(usuarioNuevo.rol)
+
                 });
 
             });
@@ -154,10 +157,62 @@ app.post('/', (request, response) => {
         return response.status(200).json({
             ok: true,
             usuario: usuarioBD,
-            token: token
+            token: token,
+            menu: obtenerMenu(usuarioBD.rol)
+
         });
     });
 
 });
+
+function obtenerMenu(rol) {
+
+    var menu = [{
+            titulo: 'Principal',
+            icono: 'mdi mdi-gauge',
+            submenu: [{
+                    titulo: 'Dashboard',
+                    url: '/dashboard'
+                },
+                {
+                    titulo: 'Progress',
+                    url: '/progress'
+                },
+                {
+                    titulo: 'Graficas',
+                    url: '/graficas1'
+                },
+                {
+                    titulo: 'Promesas',
+                    url: '/promesas'
+                },
+                {
+                    titulo: 'Observables',
+                    url: '/observables'
+                },
+                {
+                    titulo: 'Settings',
+                    url: '/settings'
+                }
+            ]
+        },
+        {
+            titulo: 'Mantenimiento',
+            icono: 'mdi mdi-folder-lock-open',
+            submenu: [
+                // { titulo: 'Usuarios', url: '/usuarios' },
+                { titulo: 'Hospitales', url: '/hospitales' },
+                { titulo: 'Medicos', url: '/medicos' }
+            ]
+        }
+    ];
+
+    if (rol == 'ADMIN_ROL') {
+        menu[1].submenu.unshift({ titulo: 'Usuarios', url: '/usuarios' });
+    }
+
+
+    return menu;
+}
 
 module.exports = app;

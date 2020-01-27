@@ -15,7 +15,7 @@ app.get('/', (request, response, next) => {
     var desde = request.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombre email img rol')
+    Usuario.find({}, 'nombre email img rol google')
         .skip(desde)
         .limit(5)
         .exec(
@@ -52,7 +52,7 @@ app.get('/', (request, response, next) => {
 
 // ACTUALIZAR UN USUARIO
 
-app.put('/:id', mdAutenticacion.verificaToken, (request, response) => {
+app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminOMismoUser], (request, response) => {
     var id = request.params.id;
 
     // verifico si un usuario existe con ese id
@@ -104,7 +104,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (request, response) => {
 
 // CREAR UN USUARIO
 
-app.post('/', mdAutenticacion.verificaToken, (request, response) => {
+app.post('/', (request, response) => {
 
     var body = request.body;
 
@@ -139,7 +139,7 @@ app.post('/', mdAutenticacion.verificaToken, (request, response) => {
 
 // BORRAR UN USUARIO
 
-app.delete('/:id', mdAutenticacion.verificaToken, (request, response) => {
+app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin], (request, response) => {
 
     var id = request.params.id;
 
@@ -161,7 +161,7 @@ app.delete('/:id', mdAutenticacion.verificaToken, (request, response) => {
 
         response.status(200).json({
             ok: true,
-            usuarios: usuarioBorrado
+            usuario: usuarioBorrado
         });
     });
 });
