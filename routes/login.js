@@ -7,12 +7,25 @@ var SEED = require('../config/config').SEED;
 var app = express();
 var Usuario = require('../models/usuario');
 
+var mdAutenticacion = require('../middlewares/autenticacion');
+
 // google
 var CLIENT_ID = require('../config/config').CLIENT_ID;
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(CLIENT_ID);
 
+// ###############################################################################
+//										RENOVAR TOKEN
+// ###############################################################################
+app.get('/renovarToken', mdAutenticacion.verificaToken, (request, response) => {
+    var token = jwt.sign({ usuario: request.usuario }, SEED, { expiresIn: 14400 }); // 4 horas
 
+    response.status(200).json({
+        ok: true,
+        token: token
+    });
+
+});
 
 
 // ###############################################################################
