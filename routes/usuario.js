@@ -98,9 +98,12 @@ app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminOMi
             });
         });
 
+
     });
 
 });
+
+
 
 // CREAR UN USUARIO
 
@@ -108,31 +111,42 @@ app.post('/', (request, response) => {
 
     var body = request.body;
 
-    var usuario = new Usuario({
-        nombre: body.nombre,
-        email: body.email,
-        password: bcrypt.hashSync(body.password, 10),
-        img: body.img,
-        rol: body.rol,
-    });
+    if (chequearEdad(body.fecha_nacimiento)) {
 
-    usuario.save((err, usuarioGuardado) => {
-
-        if (err) {
-            return response.status(400).json({
-                ok: false,
-                mensaje: 'Error al crear usuario.',
-                errors: err
-            });
-        }
-
-        response.status(201).json({
-            ok: true,
-            usuario: usuarioGuardado,
-            usuarioToken: request.usuario
+        var usuario = new Usuario({
+            nombre: body.nombre,
+            email: body.email,
+            password: bcrypt.hashSync(body.password, 10),
+            img: body.img,
+            fecha_nacimiento: body.fecha_nacimiento,
+            rol: body.rol,
         });
 
-    });
+        usuario.save((err, usuarioGuardado) => {
+
+            if (err) {
+                return response.status(400).json({
+                    ok: false,
+                    mensaje: 'Error al crear usuario.',
+                    errors: err
+                });
+            }
+
+            response.status(201).json({
+                ok: true,
+                usuario: usuarioGuardado,
+                usuarioToken: request.usuario
+            });
+
+
+        });
+
+    } else {
+        return response.status(400).json({
+            ok: false,
+            message: 'Debe ser mayor de edad para poder registrarse en el sitio.'
+        });
+    }
 
 
 });
@@ -165,5 +179,23 @@ app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin
         });
     });
 });
+
+// CHEQUEAR +18
+function chequearEdad(fecha) {
+    var fecha_aux = new Date(fecha);
+
+    // Cálculo de las diferencias.
+    var years = new Date().getFullYear() - fecha_aux.getFullYear();
+    var months = new Date().getMonth() - fecha_aux.getMonth() + 1;
+    var days = new Date().getDate() - fecha_aux.getDate();
+
+    if ((years > 18) || (years == 18 && months >= 0 && days >= 0)) {
+        return true;
+
+    }
+    return false;
+
+
+}
 
 module.exports = app;
