@@ -198,4 +198,63 @@ function chequearEdad(fecha) {
 
 }
 
+// get dashboard para ADMIN
+app.get('/dashboard/:id', mdAutenticacion.verificaToken, (request, response) => {
+    var id = request.params.id;
+
+    // chequeo que exista el usuario con ese id
+    Usuario.findById(id, (err, usuarioBD) => {
+
+        if (err) {
+            return response.status(500).json({
+                ok: false,
+                message: 'No existe un usuario con ese id',
+                error: err
+            });
+        }
+
+        // existe el usuario, chequeo su rol
+        if (usuarioBD.rol === 'ADMIN_ROL') {
+            return dashboardAdmin(response);
+
+        } else {
+            console.log('no es admin');
+            return response.status(200).json({
+                ok: false,
+                message: '-'
+            });
+
+        }
+
+
+    });
+
+});
+
+function dashboardAdmin(response) {
+    return response.status(200).json({
+        ok: true,
+        graficos: {
+            autenticacion: {
+                labels: ['Autenticación con google', 'Autenticación normal'],
+                data: [24, 30],
+                type: 'doughnut',
+                leyenda: 'Autenticación de usuarios'
+            },
+            entidades: {
+                labels: ['Médicos', 'Hospitales', 'Usuarios'],
+                data: [24, 30, 46],
+                type: 'doughnut',
+                leyenda: 'Entidades cargadas'
+            },
+            top3hospitales: {
+                labels: ['Hospital1', 'Hospital2', 'hospital3'],
+                data: [24, 30, 46],
+                type: 'doughnut',
+                leyenda: 'Top 3 hospitales con mayor cantidad de médicos asignados'
+            }
+        }
+    });
+}
+
 module.exports = app;
