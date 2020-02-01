@@ -192,19 +192,7 @@ function obtenerMenu(rol) {
                     url: '/progress'
                 },
                 {
-                    titulo: 'Graficas',
-                    url: '/graficas1'
-                },
-                {
-                    titulo: 'Promesas',
-                    url: '/promesas'
-                },
-                {
-                    titulo: 'Observables',
-                    url: '/observables'
-                },
-                {
-                    titulo: 'Settings',
+                    titulo: 'Ajustes',
                     url: '/settings'
                 }
             ]
@@ -213,16 +201,18 @@ function obtenerMenu(rol) {
             titulo: 'Mantenimiento',
             icono: 'mdi mdi-folder-lock-open',
             submenu: [
-                // { titulo: 'Usuarios', url: '/usuarios' },
+                { titulo: 'Usuarios', url: '/usuarios' },
                 { titulo: 'Hospitales', url: '/hospitales' },
                 { titulo: 'Medicos', url: '/medicos' }
             ]
         }
     ];
 
-    if (rol == 'ADMIN_ROL') {
-        menu[1].submenu.unshift({ titulo: 'Usuarios', url: '/usuarios' });
-    }
+    // si es admin, podria tener algo distinto
+
+    // if (rol == 'ADMIN_ROL') {
+    //     menu[1].submenu.unshift({ titulo: 'Usuarios', url: '/usuarios' });
+    // }
 
 
     return menu;

@@ -5,8 +5,10 @@ var mdAutenticacion = require('../middlewares/autenticacion');
 
 var app = express();
 
-//mdoelo de usuarios
+//modelos
 var Usuario = require('../models/usuario');
+var Hospital = require('../models/hospital');
+var Medico = require('../models/medico');
 
 
 // OBTENER TODOS LOS USUARIOS
@@ -212,10 +214,41 @@ app.get('/dashboard/:id', mdAutenticacion.verificaToken, (request, response) => 
                 error: err
             });
         }
+        var cantidadGoogle = 0;
+        var cantidadTotal = 0;
 
         // existe el usuario, chequeo su rol
         if (usuarioBD.rol === 'ADMIN_ROL') {
-            return dashboardAdmin(response);
+
+            // cuento el total de usuarios
+            Usuario.estimatedDocumentCount({}, (err, totalUsuarios) => {
+                if (err) {
+                    return response.status(500).json({
+                        ok: false,
+                        message: 'Error al contar total de usuarios',
+                        error: err
+                    });
+                }
+
+                cantidadTotal = cantidadTotal + totalUsuarios;
+
+
+                // cuento el total con google
+                Usuario.count({ 'google': true }, (err, totalGoogle) => {
+                    if (err) {
+                        return response.status(500).json({
+                            ok: false,
+                            message: 'Error al contar usuarios autenticados con Google',
+                            error: err
+                        });
+                    }
+                    cantidadGoogle = cantidadGoogle + totalGoogle;
+
+                    return dashboardAdmin(response, cantidadGoogle, cantidadTotal - cantidadGoogle, cantidadTotal);
+                });
+            });
+
+
 
         } else {
             console.log('no es admin');
@@ -231,30 +264,62 @@ app.get('/dashboard/:id', mdAutenticacion.verificaToken, (request, response) => 
 
 });
 
-function dashboardAdmin(response) {
-    return response.status(200).json({
-        ok: true,
-        graficos: {
-            autenticacion: {
-                labels: ['Autenticación con google', 'Autenticación normal'],
-                data: [24, 30],
-                type: 'doughnut',
-                leyenda: 'Autenticación de usuarios'
-            },
-            entidades: {
-                labels: ['Médicos', 'Hospitales', 'Usuarios'],
-                data: [24, 30, 46],
-                type: 'doughnut',
-                leyenda: 'Entidades cargadas'
-            },
-            top3hospitales: {
-                labels: ['Hospital1', 'Hospital2', 'hospital3'],
-                data: [24, 30, 46],
-                type: 'doughnut',
-                leyenda: 'Top 3 hospitales con mayor cantidad de médicos asignados'
-            }
+
+function dashboardAdmin(response, cantidadGoogle, cantidadNormal, totalUsuarios) {
+    var totalHospitales = 0;
+    var totalMedicos = 0;
+
+    // cuento total de hospitales
+    Hospital.count({}, (err, totalHospitalesAux) => {
+        if (err) {
+            return response.status(500).json({
+                ok: false,
+                message: 'Error al contar hospitales',
+                error: err
+            });
         }
+
+        totalHospitales = totalHospitales + totalHospitalesAux;
+
+        // cuento total de medicos
+        Medico.count({}, (err, totalMedicosAux) => {
+            if (err) {
+                return response.status(500).json({
+                    ok: false,
+                    message: 'Error al contar medicos',
+                    error: err
+                });
+            }
+
+            totalMedicos = totalMedicos + totalMedicosAux;
+
+            // devuelvo el json para los graficos
+            return response.status(200).json({
+                ok: true,
+                graficos: {
+                    autenticacion: {
+                        labels: ['Autenticación con google', 'Autenticación normal'],
+                        data: [cantidadGoogle, cantidadNormal],
+                        type: 'doughnut',
+                        leyenda: 'Autenticación de usuarios'
+                    },
+                    entidades: {
+                        labels: ['Médicos', 'Hospitales', 'Usuarios'],
+                        data: [totalMedicos, totalHospitales, totalUsuarios],
+                        type: 'doughnut',
+                        leyenda: 'Entidades cargadas'
+                    },
+                    top3hospitales: {
+                        labels: ['Hospital1', 'Hospital2', 'hospital3'],
+                        data: [24, 30, 46],
+                        type: 'doughnut',
+                        leyenda: 'Top 3 hospitales con mayor cantidad de médicos asignados'
+                    }
+                }
+            });
+        });
     });
+
 }
 
 module.exports = app;
