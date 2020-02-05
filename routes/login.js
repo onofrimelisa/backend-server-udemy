@@ -188,10 +188,6 @@ function obtenerMenu(rol) {
                     url: '/dashboard'
                 },
                 {
-                    titulo: 'Progress',
-                    url: '/progress'
-                },
-                {
                     titulo: 'Ajustes',
                     url: '/settings'
                 }

@@ -217,47 +217,45 @@ app.get('/dashboard/:id', mdAutenticacion.verificaToken, (request, response) => 
         var cantidadGoogle = 0;
         var cantidadTotal = 0;
 
-        // existe el usuario, chequeo su rol
-        if (usuarioBD.rol === 'ADMIN_ROL') {
+        // cuento el total de usuarios
+        Usuario.estimatedDocumentCount({}, (err, totalUsuarios) => {
+            if (err) {
+                return response.status(500).json({
+                    ok: false,
+                    message: 'Error al contar total de usuarios',
+                    error: err
+                });
+            }
 
-            // cuento el total de usuarios
-            Usuario.estimatedDocumentCount({}, (err, totalUsuarios) => {
+            cantidadTotal = cantidadTotal + totalUsuarios;
+
+
+            // cuento el total con google
+            Usuario.count({ 'google': true }, (err, totalGoogle) => {
                 if (err) {
                     return response.status(500).json({
                         ok: false,
-                        message: 'Error al contar total de usuarios',
+                        message: 'Error al contar usuarios autenticados con Google',
                         error: err
                     });
                 }
+                cantidadGoogle = cantidadGoogle + totalGoogle;
 
-                cantidadTotal = cantidadTotal + totalUsuarios;
-
-
+                // cuento el total de administradores
                 // cuento el total con google
-                Usuario.count({ 'google': true }, (err, totalGoogle) => {
+                Usuario.count({ 'rol': 'ADMIN_ROL' }, (err, totalAdmin) => {
                     if (err) {
                         return response.status(500).json({
                             ok: false,
-                            message: 'Error al contar usuarios autenticados con Google',
+                            message: 'Error al contar usuarios Administradores',
                             error: err
                         });
                     }
-                    cantidadGoogle = cantidadGoogle + totalGoogle;
 
-                    return dashboardAdmin(response, cantidadGoogle, cantidadTotal - cantidadGoogle, cantidadTotal);
+                    return dashboard(response, cantidadGoogle, cantidadTotal - cantidadGoogle, cantidadTotal, totalAdmin);
                 });
             });
-
-
-
-        } else {
-            console.log('no es admin');
-            return response.status(200).json({
-                ok: false,
-                message: '-'
-            });
-
-        }
+        });
 
 
     });
@@ -265,7 +263,7 @@ app.get('/dashboard/:id', mdAutenticacion.verificaToken, (request, response) => 
 });
 
 
-function dashboardAdmin(response, cantidadGoogle, cantidadNormal, totalUsuarios) {
+function dashboard(response, cantidadGoogle, cantidadNormal, totalUsuarios, totalAdmin) {
     var totalHospitales = 0;
     var totalMedicos = 0;
 
@@ -309,11 +307,11 @@ function dashboardAdmin(response, cantidadGoogle, cantidadNormal, totalUsuarios)
                         type: 'doughnut',
                         leyenda: 'Entidades cargadas'
                     },
-                    top3hospitales: {
-                        labels: ['Hospital1', 'Hospital2', 'hospital3'],
-                        data: [24, 30, 46],
+                    roles: {
+                        labels: ['Usuarios', 'Administradores'],
+                        data: [(totalUsuarios - totalAdmin), totalAdmin],
                         type: 'doughnut',
-                        leyenda: 'Top 3 hospitales con mayor cantidad de médicos asignados'
+                        leyenda: 'Rol usuarios y rol administrador'
                     }
                 }
             });

@@ -6,6 +6,7 @@ var app = express();
 
 //modelo de hospitales
 var Hospital = require('../models/hospital');
+var Medico = require('../models/medico');
 
 // Obtener todos los hospitales
 
@@ -172,11 +173,23 @@ app.delete('/:id', mdAutenticacion.verificaToken, (request, response) => {
             });
         }
 
-        return response.status(200).json({
-            ok: true,
-            message: 'Hospital borrado con éxito.',
-            hospital: hospitalBorrado
+        // borro todos los medicos asociados a ese hospital
+        Medico.deleteMany({ hospital: hospitalBorrado.id }, (err, resp) => {
+            if (err) {
+                return response.status(500).json({
+                    ok: false,
+                    message: 'Error al borrar médicos asociados al hospital borrado',
+                    error: err
+                });
+            }
+
+            return response.status(200).json({
+                ok: true,
+                message: 'Hospital borrado con éxito.',
+                hospital: hospitalBorrado
+            });
         });
+
     });
 });
 
