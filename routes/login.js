@@ -95,6 +95,7 @@ app.post('/google', async(request, response) => {
 
             var usuario = new Usuario({
                 nombre: googleUsr.nombre,
+                fecha_nacimiento: new Date(),
                 img: googleUsr.img,
                 email: googleUsr.email,
                 google: true,
@@ -197,18 +198,25 @@ function obtenerMenu(rol) {
             titulo: 'Mantenimiento',
             icono: 'mdi mdi-folder-lock-open',
             submenu: [
-                { titulo: 'Usuarios', url: '/usuarios' },
                 { titulo: 'Hospitales', url: '/hospitales' },
                 { titulo: 'Medicos', url: '/medicos' }
             ]
         }
     ];
 
-    // si es admin, podria tener algo distinto
+    // si es admin, puede mantener a los usuarios, si no, solo ve el listado
 
-    // if (rol == 'ADMIN_ROL') {
-    //     menu[1].submenu.unshift({ titulo: 'Usuarios', url: '/usuarios' });
-    // }
+    if (rol == 'ADMIN_ROL') {
+        menu[1].submenu.unshift({ titulo: 'Usuarios', url: '/usuarios' });
+    } else {
+        menu.push({
+            titulo: 'Listado',
+            icono: 'mdi mdi-format-list-bulleted',
+            submenu: [
+                { titulo: 'Usuarios', url: '/usuarios' }
+            ]
+        });
+    }
 
 
     return menu;

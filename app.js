@@ -4,7 +4,7 @@
 // Requires (importacion de librerias para que funcione algo)
 var express = require('express');
 var mongoose = require('mongoose');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 
 // Inicializar variables
 // creo mi aplicacion, inicializo la variable express
@@ -48,6 +48,7 @@ var medicoRoutes = require('./routes/medico');
 var busquedaRoutes = require('./routes/busqueda');
 var uploadRoutes = require('./routes/upload');
 var imagenesRoutes = require('./routes/imagenes');
+var entidadesRoutes = require('./routes/entidades');
 
 // defino el middleware (se ejecuta antes de que se resuelvan otras rutas)
 app.use('/usuario', usuarioRoutes);
@@ -57,6 +58,7 @@ app.use('/medico', medicoRoutes);
 app.use('/busqueda', busquedaRoutes);
 app.use('/upload', uploadRoutes);
 app.use('/img', imagenesRoutes);
+app.use('/entidades', entidadesRoutes);
 
 // esta tiene que ser siempre la ultima ruta
 app.use('/', appRoutes);
