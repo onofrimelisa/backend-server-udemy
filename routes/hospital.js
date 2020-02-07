@@ -71,30 +71,41 @@ app.get('/:id', (request, response) => {
 
             hospital.usuario.password = '-';
 
-            // tengo el hospital, busco el total de medicos asignados a él
-            Medico.countDocuments({ hospital: hospital.id }, (err, cantidadMedicos) => {
+            // busco total de médicos
+            Medico.estimatedDocumentCount({}, (err, totalMedicos) => {
                 if (err) {
                     return response.status(500).json({
                         ok: false,
                         error: err,
-                        message: 'Error al buscar médicos'
+                        message: 'Error al contar médicos'
                     });
                 }
 
-                response.status(200).json({
-                    ok: true,
-                    hospital: hospital,
-                    medicos: cantidadMedicos,
-                    graficos: {
-                        medicos: {
-                            labels: ['Médicos asignados a ' + hospital.nombre, 'Total de médicos'],
-                            data: [cantidadMedicos, 100],
-                            type: 'doughnut',
-                            leyenda: 'Médicos asignados'
-                        }
+                // tengo el hospital, busco el total de medicos asignados a él
+                Medico.countDocuments({ hospital: hospital.id }, (err, cantidadEnHospital) => {
+                    if (err) {
+                        return response.status(500).json({
+                            ok: false,
+                            error: err,
+                            message: 'Error al contar médicos asignados al hospital'
+                        });
                     }
+
+                    response.status(200).json({
+                        ok: true,
+                        hospital: hospital,
+                        graficos: {
+                            medicos: {
+                                labels: ['Médicos en ' + hospital.nombre, 'Médicos en el resto de los hospitales'],
+                                data: [cantidadEnHospital, (totalMedicos - cantidadEnHospital)],
+                                type: 'doughnut',
+                                leyenda: 'Médicos asignados'
+                            }
+                        }
+                    });
                 });
             });
+
 
         });
 });
