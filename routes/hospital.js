@@ -51,7 +51,7 @@ app.get('/:id', (request, response) => {
     var id = request.params.id;
 
     Hospital.findById(id)
-        .populate('usuario', 'nombre img email')
+        .populate('usuario', 'email img nombre rol')
         .exec((err, hospital) => {
 
             if (err) {
@@ -69,10 +69,33 @@ app.get('/:id', (request, response) => {
                 });
             }
 
-            response.status(200).json({
-                ok: true,
-                hospital: hospital
+            hospital.usuario.password = '-';
+
+            // tengo el hospital, busco el total de medicos asignados a él
+            Medico.countDocuments({ hospital: hospital.id }, (err, cantidadMedicos) => {
+                if (err) {
+                    return response.status(500).json({
+                        ok: false,
+                        error: err,
+                        message: 'Error al buscar médicos'
+                    });
+                }
+
+                response.status(200).json({
+                    ok: true,
+                    hospital: hospital,
+                    medicos: cantidadMedicos,
+                    graficos: {
+                        medicos: {
+                            labels: ['Médicos asignados a ' + hospital.nombre, 'Total de médicos'],
+                            data: [cantidadMedicos, 100],
+                            type: 'doughnut',
+                            leyenda: 'Médicos asignados'
+                        }
+                    }
+                });
             });
+
         });
 });
 
