@@ -50,7 +50,7 @@ app.get('/:id', (request, response) => {
     let id = request.params.id;
 
     Medico.findById(id)
-        .populate('usuario', 'nombre email img')
+        .populate('usuario')
         .populate('hospital')
         .exec((err, medico) => {
 

@@ -51,7 +51,7 @@ app.get('/:id', (request, response) => {
     var id = request.params.id;
 
     Hospital.findById(id)
-        .populate('usuario', 'email img nombre rol')
+        .populate('usuario')
         .exec((err, hospital) => {
 
             if (err) {
@@ -69,7 +69,7 @@ app.get('/:id', (request, response) => {
                 });
             }
 
-            hospital.usuario.password = '-';
+            // hospital.usuario.password = '-';
 
             // busco total de médicos
             Medico.estimatedDocumentCount({}, (err, totalMedicos) => {
