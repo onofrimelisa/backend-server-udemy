@@ -1,5 +1,7 @@
 // inicializa el servidor de express, bd, etc
 
+// carga las variables de entorno
+require('dotenv').config();
 
 // Requires (importacion de librerias para que funcione algo)
 var express = require('express');
@@ -23,14 +25,17 @@ app.use(bodyParser.json());
 
 
 // Conexion a la BD
-mongoose.connection.openUri('mongodb://localhost:27017/hospitalDB', (err, res) => {
+mongoose.connection.openUri(process.env.MONGODB_URI, {
 
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+
+}, (err, resp) => {
     if (err) {
         throw err;
     }
 
     console.log('Base de datos: \x1b[32m%s\x1b[0m', 'online');
-
 });
 
 // // Server index config
